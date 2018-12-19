@@ -7,7 +7,7 @@
 <a href="https://github.com/PerfectDreams/CommandFramework/watchers"><img src="https://img.shields.io/github/watchers/PerfectDreams/CommandFramework.svg?style=social&label=Watch"></a>
 </p>
 <p align="center">
-	<sup><i>Desenho feito por <code>💀Hiro🐦#3360</code><i></sup>
+	<sup><i>Desenho feito por <code>💀Hiro🐦#3360</code></i></sup>
 </p>
 <img height="350" src="https://i.imgur.com/vEK6bA9.png" align="right">
 
