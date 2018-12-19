@@ -1,4 +1,4 @@
-<h1 align="center">🔖 Framework para Comandos do PerfectDreams 🔖</h1>
+<h1 align="center">🔖 Framework de Comandos para o PerfectDreams 🔖</h1>
 <p align="center">
 <a href="https://github.com/PerfectDreams/CommandFramework/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-AGPL%20v3-lightgray.svg"></a>
 </p>
