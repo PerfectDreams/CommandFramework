@@ -7,12 +7,12 @@
     <parent>
         <groupId>net.perfectdreams.commands</groupId>
         <artifactId>command-framework-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>command-framework-core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

@@ -1,14 +1,21 @@
 package net.perfectdreams.commands.manager
 
+import kotlinx.coroutines.runBlocking
 import net.perfectdreams.commands.BaseCommand
 import net.perfectdreams.commands.dsl.BaseDSLCommand
-import kotlin.coroutines.CoroutineContext
 
 interface CommandDispatcher<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMMAND_TYPE: BaseDSLCommand> {
-	fun dispatch(sender: SENDER, command: COMMAND_TYPE, input: String, coroutineContext: CoroutineContext? = null): Boolean {
+	fun dispatchBlocking(sender: SENDER, command: COMMAND_TYPE, input: String): Boolean {
 		val split = input.split(" ")
-		return dispatch(sender, command, split[0], split.drop(1).toTypedArray(), coroutineContext)
+		return dispatchBlocking(sender, command, split[0], split.drop(1).toTypedArray())
 	}
 
-	fun dispatch(sender: SENDER, command: COMMAND_TYPE, label: String, arguments: Array<String>, coroutineContext: CoroutineContext? = null): Boolean
+	suspend fun dispatch(sender: SENDER, command: COMMAND_TYPE, input: String): Boolean {
+		val split = input.split(" ")
+		return dispatch(sender, command, split[0], split.drop(1).toTypedArray())
+	}
+
+	fun dispatchBlocking(sender: SENDER, command: COMMAND_TYPE, label: String, arguments: Array<String>): Boolean = runBlocking { dispatch(sender, command, label, arguments) }
+
+	suspend fun dispatch(sender: SENDER, command: COMMAND_TYPE, label: String, arguments: Array<String>): Boolean
 }

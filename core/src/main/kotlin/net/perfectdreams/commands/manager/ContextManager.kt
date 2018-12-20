@@ -9,11 +9,10 @@ import kotlin.reflect.full.isSubclassOf
 class ContextManager<SENDER> {
 	val registeredContexts = mutableListOf<ContextWrapper>()
 
-	fun <SENDER> getResult(sender: SENDER, clazz: KClass<*>, stack: Stack<String>) = registeredContexts
-			.asSequence()
+	suspend fun <SENDER> getResult(sender: SENDER, clazz: KClass<*>, stack: Stack<String>) = registeredContexts
 			.filter { it.condition.invoke(clazz) }
 			.map { it.executor.invoke(sender as Any, clazz, stack) }
-			.firstOrNull()
+			.firstOrNull { it != null }
 
 	fun registerDefaultContexts() {
 		registerContext<SENDER>({ clazz: KClass<*> -> clazz == String::class }) { sender, clazz, stack ->
@@ -36,9 +35,9 @@ class ContextManager<SENDER> {
 		}
 	}
 
-	fun <T1> registerContext(condition: (KClass<*>) -> (Boolean), callback: (SENDER, KClass<*>, Stack<String>) -> (Any?)) {
-		registerContext(condition, callback as (Any, Any, Any) -> (Any?))
+	fun <T1> registerContext(condition: (KClass<*>) -> (Boolean), callback: suspend (SENDER, KClass<*>, Stack<String>) -> (Any?)) {
+		registerContext(condition, callback as suspend (Any, Any, Any) -> (Any?))
 	}
 
-	fun registerContext(condition: (KClass<*>) -> Boolean, callback: (Any, Any, Any) -> (Any?)) = registeredContexts.add(ContextWrapper(condition, callback))
+	fun registerContext(condition: (KClass<*>) -> Boolean, callback: suspend (Any, Any, Any) -> (Any?)) = registeredContexts.add(ContextWrapper(condition, callback))
 }

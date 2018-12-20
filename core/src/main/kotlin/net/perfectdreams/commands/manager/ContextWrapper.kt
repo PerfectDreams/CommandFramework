@@ -4,5 +4,5 @@ import kotlin.reflect.KClass
 
 class ContextWrapper(
 		val condition: (KClass<*>) -> Boolean,
-		val executor: (Any, Any, Any) -> Any?
+		val executor: suspend (Any, Any, Any) -> Any?
 )

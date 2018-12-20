@@ -1,5 +1,6 @@
 package net.perfectdreams.commands
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import net.perfectdreams.commands.annotation.CustomArgumentType
 import net.perfectdreams.commands.annotation.CustomInjectArgument
@@ -8,11 +9,9 @@ import net.perfectdreams.commands.console.ConsoleCommandManager
 import net.perfectdreams.commands.console.Friend
 import net.perfectdreams.commands.console.Sender
 import net.perfectdreams.commands.console.TextDumperSender
-import net.perfectdreams.commands.dsl.command
 import net.perfectdreams.commands.manager.CommandContinuationType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
@@ -40,22 +39,22 @@ class CommandsTest {
 		)
 		val sender = TextDumperSender()
 
-		val result1 = commandManager.dispatch(
+		val result1 = commandManager.dispatchBlocking(
 				sender,
 				"simple"
 		)
 
-		val result2 = commandManager.dispatch(
+		val result2 = commandManager.dispatchBlocking(
 				sender,
 				"simple goodbye"
 		)
 
-		val result3 = commandManager.dispatch(
+		val result3 = commandManager.dispatchBlocking(
 				sender,
 				"simple unknown_subcommand_must_display_ola_mundo"
 		)
 
-		val result4 = commandManager.dispatch(
+		val result4 = commandManager.dispatchBlocking(
 				sender,
 				"unknown_command"
 		)
@@ -84,19 +83,8 @@ class CommandsTest {
 		val resultWithinCoroutine = runBlocking {
 			commandManager.dispatch(
 					sender,
-					"coroutine drawn mask",
-					this.coroutineContext
-			)
-		}
-
-		try {
-			commandManager.dispatch(
-					sender,
 					"coroutine drawn mask"
 			)
-			fail("Code marked as suspend was ran with a coroutine context that... doesn't exist?")
-		} catch (e: Exception) {
-			assertThat(e).hasMessageContaining("is marked with suspend, but we don't have a coroutine context!")
 		}
 
 		val result = sender.result
@@ -116,35 +104,35 @@ class CommandsTest {
 		val sender = TextDumperSender()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"undertale"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"undertale roleplay"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"undertale roleplay frisk"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"undertale roleplay FRISK"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"undertale roleplay KRIS"
 				)
@@ -172,14 +160,14 @@ class CommandsTest {
 		val sender = TextDumperSender()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"classdsl"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"classdsl dsl lori é fofis!"
 				)
@@ -220,28 +208,28 @@ class CommandsTest {
 		val sender = TextDumperSender()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"context"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"context nobody"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"context loritta"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"context pantufa"
 				)
@@ -265,28 +253,28 @@ class CommandsTest {
 		val sender = TextDumperSender()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"dslexample"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"dslexample easter"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"dslexample easter lorota jubinha"
 				)
 		).isTrue()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"dslexample easter lorotajubinha"
 				)
@@ -309,7 +297,7 @@ class CommandsTest {
 				PermissionCommand()
 		)
 
-		commandManager.commandListeners.onMethodCommand { sender, dreamCommand, kCallable ->
+		commandManager.commandListeners.addMethodListener { sender, dreamCommand, kCallable ->
 			val annotation = kCallable.findAnnotation<SubcommandPermission>()
 
 			if (annotation == null) {
@@ -323,7 +311,7 @@ class CommandsTest {
 		val sender = TextDumperSender()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"permission"
 				)
@@ -341,7 +329,7 @@ class CommandsTest {
 				InjectLoriCommand()
 		)
 
-		commandManager.commandListeners.onParameter { sender, dreamCommand, kParameter ->
+		commandManager.commandListeners.addParameterListener { sender, dreamCommand, kParameter, stack ->
 			val annotation = kParameter.findAnnotation<CustomInjectArgument>()
 
 			when (annotation?.type) {
@@ -353,7 +341,7 @@ class CommandsTest {
 		val sender = TextDumperSender()
 
 		assertThat(
-				commandManager.dispatch(
+				commandManager.dispatchBlocking(
 						sender,
 						"lori"
 				)
@@ -362,5 +350,88 @@ class CommandsTest {
 		val result = sender.result
 
 		assertThat(result[0]).isEqualTo("Loritta Morenitta")
+	}
+
+	@Test
+	fun `exception checking`() {
+		val commandManager = createCommandManager()
+		commandManager.registerCommands(
+				MagicallyExceptionallyCommand()
+		)
+
+		commandManager.commandListeners.addThrowableListener { sender, dreamCommand, exception ->
+			if (exception is DreamCommandException) {
+				sender.sendMessage(exception.message!!)
+				return@addThrowableListener CommandContinuationType.CANCEL
+			}
+
+			return@addThrowableListener CommandContinuationType.CONTINUE
+		}
+
+		val sender = TextDumperSender()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"magically"
+				)
+		).isTrue()
+
+		val result = sender.result
+
+		assertThat(result[0]).isEqualTo("https://bit.ly/segredolori")
+	}
+
+	@Test
+	fun `command with suspendable custom context execution`() {
+		val commandManager = createCommandManager()
+		commandManager.registerCommand(
+				AsyncCoroutineCommand()
+		)
+
+		commandManager.contextManager.registerContext<Sender>(
+				{ clazz: KClass<*> -> clazz == Sender::class },
+				{ sender, klazz, stack ->
+					val pop = stack.pop().toLowerCase()
+
+					println("Processando utilizando coroutines!")
+					delay(100) // API Request
+
+					when (pop) {
+						"loritta" -> Friend("Loritta Morenitta")
+						"pantufa" -> Friend("Pantufa (Charlotte)")
+						"mrpowergamerbr" -> Friend("MrPowerGamerBR")
+						"luca" -> Friend("Drawn Mask")
+						"toddy" -> Friend("_XxToDdYNho0Xx_")
+						"jvgm45" -> Friend("JvGm45")
+						"gabriel" -> Friend("MrGaabriel")
+						"its_gabi" -> Friend("Its_Gabi")
+						else -> null
+					}
+				}
+		)
+
+		val sender = TextDumperSender()
+
+		runBlocking {
+			assertThat(
+					commandManager.dispatch(
+							sender,
+							"asynccontext"
+			)
+			).isTrue()
+
+			assertThat(
+					commandManager.dispatch(
+							sender,
+							"asynccontext loritta"
+					)
+			).isTrue()
+		}
+
+		val result = sender.result
+
+		assertThat(result[0]).isEqualTo("Passe um sender!")
+		assertThat(result[1]).isEqualTo("Seu amigo é Loritta Morenitta! Legal, né? Sabia que ele foi pego em uma coroutine? :O")
 	}
 }

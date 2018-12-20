@@ -2,7 +2,7 @@ package net.perfectdreams.commands.dsl
 
 import net.perfectdreams.commands.DreamCommand
 
-open class DreamDSLCommand(vararg labels: String, override val executors: List<DreamDSLExecutorWrapper>, dslSubcommands: List<BaseDSLCommand>) : DreamCommand(*labels), BaseDSLCommand {
+open class DreamDSLCommand(vararg labels: String, override val executors: List<DSLExecutorWrapper>, dslSubcommands: List<BaseDSLCommand>) : DreamCommand(*labels), BaseDSLCommand {
 	init {
 		// lol nope, vamos ignorar todos os subcomandos registrados pela classe principal, elas são chatas!
 		subcommands.clear()

@@ -1,5 +1,6 @@
-<h1 align="center">🔖 Framework para Comandos do PerfectDreams 🔖</h1>
+<h1 align="center">🔖 Framework de Comandos para o PerfectDreams 🔖</h1>
 <p align="center">
+<a href="https://jenkins.perfectdreams.net/job/CommandFramework/"><img src="https://jenkins.perfectdreams.net/job/CommandFramework/badge/icon"></a>
 <a href="https://github.com/PerfectDreams/CommandFramework/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-AGPL%20v3-lightgray.svg"></a>
 </p>
 <p align="center">
@@ -7,7 +8,7 @@
 <a href="https://github.com/PerfectDreams/CommandFramework/watchers"><img src="https://img.shields.io/github/watchers/PerfectDreams/CommandFramework.svg?style=social&label=Watch"></a>
 </p>
 <p align="center">
-	<sup><i>Desenho feito por <code>💀Hiro🐦#3360</code><i></sup>
+	<sup><i>Desenho feito por <code>💀Hiro🐦#3360</code></i></sup>
 </p>
 <img height="350" src="https://i.imgur.com/vEK6bA9.png" align="right">
 
@@ -28,6 +29,24 @@ Ela foi inspirada em várias frameworks diferentes: [Annotation Command Framewor
 2. Dependem de plataformas para funcionar, em vez de serem "genéricas" para usar em qualquer tipo de sistema (*Plugin Annotations*, *KotlinBukkitAPI*)
 3. Apenas suporta DSL (*KotlinBukkitAPI*)
 
+```xml
+        <repository>
+            <id>perfectdreams-repo</id>
+            <url>https://repo.perfectdreams.net/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+
+... coisas coisas coisas ...
+
+        <dependency>
+            <groupId>net.perfectdreams.commands</groupId>
+            <artifactId>command-framework-core</artifactId>
+            <version>0.0.2-SNAPSHOT</version> <!-- Veja a última versão no pom.xml! -->
+        </dependency>
+```
 ## 🤔 Tá fera, mas cadê os exemplos?
 
 Nestes exemplos, estamos usando a [nossa implementação que fizemos para unit tests](https://github.com/PerfectDreams/CommandFramework/tree/master/core/src/test/kotlin/net/perfectdreams/commands), como você terá que implementar algumas coisas você mesmo, talvez existam algumas diferenças. (Mas nada tããããão diferente, não se preocupe!)
@@ -54,7 +73,7 @@ fun main() {
 
 	while (true) {
 		val line = readLine()!!
-		commandManager.dispatch(
+		commandManager.dispatchBlocking( // Caso você esteja usando coroutines, use apenas "dispatch"
 			ConsoleSender(),
 			line
 		)
@@ -110,7 +129,7 @@ open class DreamDSLCommand(vararg labels: String, override val executors: List<D
 ```
 **Command Manager:**
  ```kotlin
- class ConsoleCommandManager : DispatchableCommandManager<Sender, DreamCommand, DreamDSLCommand>() {  
+class ConsoleCommandManager : DispatchableCommandManager<Sender, DreamCommand, DreamDSLCommand>() {  
 	private val commands = mutableListOf<DreamCommand>()  
   
 	override fun registerCommand(command: DreamCommand) {  
@@ -125,16 +144,16 @@ open class DreamDSLCommand(vararg labels: String, override val executors: List<D
 		return commands  
 	}  
   
-   override fun dispatch(sender: Sender, command: DreamCommand, label: String, arguments: Array<String>, coroutineContext: CoroutineContext?): Boolean {  
-      if (!command.labels.contains(label))  
-         return false  
-  
-		for (subCommand in command.subcommands) {    
-			if (dispatch(sender, subCommand as DreamCommand, arguments.drop(0).firstOrNull() ?: "", arguments.drop(1).toTypedArray(), coroutineContext))  
-				return true  
-		}  
-		return execute(sender, command, arguments, coroutineContext)  
-   }  
+	override suspend fun dispatch(sender: Sender, command: DreamCommand, label: String, arguments: Array<String>): Boolean {
+		if (!command.labels.contains(label))
+			return false
+
+		for (subCommand in command.subcommands) {
+			if (dispatch(sender, subCommand as DreamCommand, arguments.drop(0).firstOrNull() ?: "", arguments.drop(1).toTypedArray()))
+				return true
+		}
+		return execute(sender, command, arguments)
+	}  
 }
 ```
 </details>

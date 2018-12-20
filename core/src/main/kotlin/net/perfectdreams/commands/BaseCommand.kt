@@ -17,7 +17,6 @@ interface BaseCommand {
 			val constructor = it.constructors.firstOrNull() ?: return@forEach
 
 			val newInstance = constructor.call(this)
-			println("Registrando $newInstance...")
 			subcommands.add(newInstance as BaseCommand)
 		}
 	}
