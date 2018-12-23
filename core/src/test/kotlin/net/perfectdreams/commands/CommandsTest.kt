@@ -353,6 +353,53 @@ class CommandsTest {
 	}
 
 	@Test
+	fun `ayla subcommand joined string stack checking`() {
+		val commandManager = createCommandManager()
+		commandManager.registerCommands(
+				InjectedAylaJoinedCommand()
+		)
+
+		commandManager.commandListeners.addParameterListener { sender, dreamCommand, kParameter, stack ->
+			val annotation = kParameter.findAnnotation<CustomInjectArgument>()
+
+			return@addParameterListener when (annotation?.type) {
+				CustomArgumentType.ARGUMENT_LIST -> {
+					println("Processing argument list!")
+					if (stack.isEmpty()) {
+						println("Oh no, it is empty! Return null :3")
+						return@addParameterListener HandlerValueWrapper(null) // Já que queremos retornar null, temos que ser explícitos
+					}
+
+					println("Joining the stack...")
+					stack.reversed().joinToString(" ")
+				}
+				else -> null
+			}
+		}
+
+		val sender = TextDumperSender()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"ayla all_arguments"
+				)
+		).isTrue()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"ayla all_arguments lori é fofis! :3"
+				)
+		).isTrue()
+
+		val result = sender.result
+
+		assertThat(result[0]).isEqualTo("null")
+		assertThat(result[1]).isEqualTo("lori é fofis! :3")
+	}
+
+	@Test
 	fun `exception checking`() {
 		val commandManager = createCommandManager()
 		commandManager.registerCommands(
@@ -418,7 +465,7 @@ class CommandsTest {
 					commandManager.dispatch(
 							sender,
 							"asynccontext"
-			)
+					)
 			).isTrue()
 
 			assertThat(

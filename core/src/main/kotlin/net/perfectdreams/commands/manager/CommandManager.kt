@@ -1,10 +1,10 @@
 package net.perfectdreams.commands.manager
 
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import net.perfectdreams.commands.ArgumentType
 import net.perfectdreams.commands.BaseCommand
+import net.perfectdreams.commands.HandlerValueWrapper
 import net.perfectdreams.commands.annotation.InjectArgument
 import net.perfectdreams.commands.annotation.Subcommand
 import net.perfectdreams.commands.dsl.BaseDSLCommand
@@ -84,10 +84,10 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 
 						val parameters = mutableListOf<Any?>()
 
-
 						for ((clazz, nestedClazzMarkedNullable) in executorWrapper.args.drop(1)) {
 							try {
-								val result = contextManager.getResult(sender, clazz, stack)
+								logger.debug { "Processing parameter ${stack.peek()} - ${clazz}" }
+								val result = unwrap(contextManager.getResult(sender, clazz, stack))
 
 								if (result != null) {
 									parameters.add(result)
@@ -202,10 +202,7 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 							logger.debug { clazz }
 
 							try {
-								// TODO: Talvez seja possível melhorar a performance?
-								val result = commandListeners.parameterProcessors
-										.map { it.invoke(sender, command, parameter, stack) }
-										.firstOrNull { it != null } ?: contextManager.getResult(sender, clazz, stack)
+								val result = unwrap(getFirstNonNullValueFromParameterProcessor(sender, command, parameter, stack) ?: contextManager.getResult(sender, clazz, stack))
 
 								if (result != null) {
 									parameters[parameter] = result
@@ -217,6 +214,7 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 									parameters[parameter] = null
 								}
 							} catch (e: EmptyStackException) {
+								e.printStackTrace()
 								logger.debug { "Stack is empty, ignoring..." }
 								continue@forMembers
 							}
@@ -263,5 +261,23 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 			}
 			throw e
 		}
+	}
+
+	// "Mas não dá para fazer isto só com um sequence?"
+	// Não, pois é suspend, e dentro de uma sequence não pode usar métodos que utilizen suspend
+	private suspend fun getFirstNonNullValueFromParameterProcessor(sender: SENDER, command: COMMAND_TYPE, parameter: KParameter, stack: Stack<String>): Any? {
+		for (listener in commandListeners.parameterProcessors) {
+			val result = listener.invoke(sender, command, parameter, stack)
+			logger.debug { "Result is $result" }
+			if (result != null)
+				return result
+		}
+		return null
+	}
+
+	private fun unwrap(maybeWrappedValue: Any?): Any? {
+		if (maybeWrappedValue !is HandlerValueWrapper)
+			return maybeWrappedValue
+		return maybeWrappedValue.value
 	}
 }
