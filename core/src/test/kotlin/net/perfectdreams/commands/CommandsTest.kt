@@ -481,4 +481,41 @@ class CommandsTest {
 		assertThat(result[0]).isEqualTo("Passe um sender!")
 		assertThat(result[1]).isEqualTo("Seu amigo é Loritta Morenitta! Legal, né? Sabia que ele foi pego em uma coroutine? :O")
 	}
+
+	@Test
+	fun `default value test`() {
+		val commandManager = createCommandManager()
+		commandManager.registerCommand(
+				DefaultValuesCommand()
+		)
+
+		val sender = TextDumperSender()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"default"
+				)
+		).isTrue()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"default loritta"
+				)
+		).isTrue()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"default loritta uwu"
+				)
+		).isTrue()
+
+		val result = sender.result
+
+		assertThat(result[0]).isEqualTo("Você escreveu hello_world! lori é fofa!")
+		assertThat(result[1]).isEqualTo("Você escreveu loritta! lori é fofa!")
+		assertThat(result[2]).isEqualTo("Você escreveu loritta! uwu")
+	}
 }

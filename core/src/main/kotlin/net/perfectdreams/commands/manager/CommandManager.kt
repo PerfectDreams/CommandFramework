@@ -13,6 +13,7 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.*
+import kotlin.reflect.jvm.jvmErasure
 
 // Um generic type, por padrão, é nullable.
 // Para não ser nullable (afinal, o COMAMND_TYPE e o SENDER jamais devem ser um tipo nullable) nós precisamos usar <T : Any>
@@ -169,6 +170,16 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 				forMembers@ for (member in sortedMembers) {
 					val subCommandAnnotation = member.findAnnotation<Subcommand>()
 					if (subCommandAnnotation != null) {
+						val senderParameter = member.parameters[1]
+						val senderParameterClazz = senderParameter.type.jvmErasure
+						
+						logger.debug { "Sender class: $senderParameterClazz" }
+						logger.debug { "Is ${sender::class} not $senderParameterClazz? = ${senderParameterClazz != sender::class}" }
+						logger.debug { "Is $sender a subclass of $senderParameterClazz? ${sender::class.isSubclassOf(senderParameterClazz)}" }
+
+						if (senderParameterClazz != sender::class && !sender::class.isSubclassOf(senderParameterClazz))
+							continue
+
 						val parameters = mutableMapOf<KParameter, Any?>(
 								member.instanceParameter!! to command,
 								member.parameters[1] to sender
@@ -214,9 +225,10 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 									parameters[parameter] = null
 								}
 							} catch (e: EmptyStackException) {
-								e.printStackTrace()
-								logger.debug { "Stack is empty, ignoring..." }
-								continue@forMembers
+								if (!parameter.isOptional) {
+									logger.debug(e) { "Stack is empty, ignoring..." }
+									continue@forMembers
+								}
 							}
 						}
 
