@@ -15,7 +15,7 @@
 
     <groupId>net.perfectdreams.commands</groupId>
     <artifactId>command-framework-parent</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <packaging>pom</packaging>
 
     <modules>
