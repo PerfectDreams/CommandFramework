@@ -34,7 +34,7 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 			if (injectArgumentAnnotation != null) {
 				return@addParameterListener when {
 					injectArgumentAnnotation.argumentType == ArgumentType.PEEK_STRING -> stack.peek()
-					injectArgumentAnnotation.argumentType == ArgumentType.ALL_ARGUMENTS -> stack.joinToString(" ")
+					injectArgumentAnnotation.argumentType == ArgumentType.ALL_ARGUMENTS -> stack.reverse().joinToString(" ")
 					else -> throw UnsupportedOperationException("I don't know how to handle this!")
 				}
 			}
