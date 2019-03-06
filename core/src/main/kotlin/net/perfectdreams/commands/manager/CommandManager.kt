@@ -152,7 +152,7 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 			} else {
 				val commandClass = command::class
 
-				val declaredMembers = commandClass.declaredMembers
+				val declaredMembers = commandClass.members
 
 				// Estamos usando "compareBy" em vez de "sortedBy" pois é possível organizar com dois parametros diferentes, ou seja...
 				// @Subcommand(["abc"]) fun(a)

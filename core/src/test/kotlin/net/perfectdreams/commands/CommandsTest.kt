@@ -518,4 +518,33 @@ class CommandsTest {
 		assertThat(result[1]).isEqualTo("Você escreveu loritta! lori é fofa!")
 		assertThat(result[2]).isEqualTo("Você escreveu loritta! uwu")
 	}
+
+	@Test
+	fun `extended base test`() {
+		val commandManager = createCommandManager()
+		commandManager.registerCommand(
+				ExtendedCommand("extended")
+		)
+
+		val sender = TextDumperSender()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"extended"
+				)
+		).isTrue()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"extended fofis"
+				)
+		).isTrue()
+
+		val result = sender.result
+
+		assertThat(result[0]).isEqualTo("Olá Teste!")
+		assertThat(result[1]).isEqualTo(":3 https://twitter.com/Haaataoh/status/1103377726432571392")
+	}
 }
