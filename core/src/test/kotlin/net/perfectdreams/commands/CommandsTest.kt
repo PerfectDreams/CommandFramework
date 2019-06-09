@@ -12,6 +12,7 @@ import net.perfectdreams.commands.console.TextDumperSender
 import net.perfectdreams.commands.manager.CommandContinuationType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import kotlin.contracts.ExperimentalContracts
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
@@ -427,6 +428,36 @@ class CommandsTest {
 		val result = sender.result
 
 		assertThat(result[0]).isEqualTo("https://bit.ly/segredolori")
+	}
+
+	@Test
+	fun `exception checking 2`() {
+		val commandManager = createCommandManager()
+		commandManager.registerCommands(
+				SuspendableMagicallyExceptionallyCommand()
+		)
+
+		commandManager.commandListeners.addThrowableListener { sender, dreamCommand, exception ->
+			if (exception is DreamCommandException) {
+				sender.sendMessage(exception.message!!)
+				return@addThrowableListener CommandContinuationType.CANCEL
+			}
+
+			return@addThrowableListener CommandContinuationType.CONTINUE
+		}
+
+		val sender = TextDumperSender()
+
+		assertThat(
+				commandManager.dispatchBlocking(
+						sender,
+						"magically"
+				)
+		).isTrue()
+
+		val result = sender.result
+
+		assertThat(result[0]).isEqualTo("oh no!")
 	}
 
 	@Test

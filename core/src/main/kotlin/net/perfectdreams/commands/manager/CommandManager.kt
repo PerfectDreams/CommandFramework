@@ -173,7 +173,7 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 					if (subCommandAnnotation != null) {
 						val senderParameter = member.parameters[1]
 						val senderParameterClazz = senderParameter.type.jvmErasure
-						
+
 						logger.debug { "Sender class: $senderParameterClazz" }
 						logger.debug { "Is ${sender::class} not $senderParameterClazz? = ${senderParameterClazz != sender::class}" }
 						logger.debug { "Is $sender a subclass of $senderParameterClazz? ${sender::class.isSubclassOf(senderParameterClazz)}" }
@@ -262,16 +262,19 @@ abstract class CommandManager<SENDER : Any, COMMAND_TYPE : BaseCommand, DSL_COMM
 				return false
 			}
 		} catch (e: Throwable) {
-			if (e is InvocationTargetException) {
-				logger.debug { "Throwable $e, sending it to ${commandListeners.throwableProcessors.size} exception processors..." }
+			logger.debug { "Throwable $e, sending it to ${commandListeners.throwableProcessors.size} exception processors..." }
 
-				for (callback in commandListeners.throwableProcessors) {
-					val continuationType = callback.invoke(sender, command, e.targetException)
-					logger.debug { "$callback said to $continuationType" }
-					if (continuationType == CommandContinuationType.CANCEL)
-						return true
-				}
+			for (callback in commandListeners.throwableProcessors) {
+				val passException = if (e is InvocationTargetException) {
+					e.targetException
+				} else { e }
+
+				val continuationType = callback.invoke(sender, command, passException)
+				logger.debug { "$callback said to $continuationType" }
+				if (continuationType == CommandContinuationType.CANCEL)
+					return true
 			}
+
 			throw e
 		}
 	}
